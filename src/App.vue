@@ -42,6 +42,7 @@ export default {
 body {
   margin: 0px;
   font-family: Tahoma_Regular;
+  font-size: 14px;
 }
 a {
   color: #fff;

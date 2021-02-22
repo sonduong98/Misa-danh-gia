@@ -32,7 +32,7 @@
   width: 200px;
   font-weight: 600;
   border-right: solid 2px #e5e5e5;
-  min-height: 100vh;
+  height: 130vh;
   transition: width 1s;
   opacity: 1;
   background-color: #0973b9;
@@ -66,7 +66,7 @@
 }
 .sidebar-left ul li span {
   position: relative;
-  top: 11px;
+  top: 6px;
   opacity: 1;
   display: block;
   /* transition: opacity 10s; */

@@ -17,14 +17,15 @@
               <v-card style="border:solid 4px #0973b9;border-radius:0px">
                 <v-toolbar
                   color="#0973b9"
-                  style="height: 41px !important;background-color: rgb(9, 115, 185);border-color: rgb(9, 115, 185);padding: 0px;position:relative"
+                  style="height: 25px !important;background-color: rgb(9, 115, 185);border-color: rgb(9, 115, 185);padding: 0px;position:relative"
                   dark
                 >
+                  <div class="title-dialog"><span>Sửa nhân viên</span></div>
                   <div
                     @click="dialog.value = false"
-                    style="    position: absolute;right: 0px;top: 0px;right: 8px;font-size: 24px;cursor: pointer;"
+                    style="    position: absolute;right: 0px;top: -8px;right: 8px;font-size: 24px;cursor: pointer;"
                   >
-                    x
+                    <img style="height: 13px;" src="@/assets/icon/cancel.png" />
                   </div>
                 </v-toolbar>
                 <div
@@ -39,6 +40,10 @@
                     <img src="@/assets/icon/Edit16.png" />
                     <span>Sửa</span>
                   </div>
+                  <div @click="saveForm">
+                    <img src="@/assets/icon/Save16.png" />
+                    <span>Cất</span>
+                  </div>
                   <div>
                     <img src="@/assets/icon/icons8-delete-26.png" />
                     <span>Xóa</span>
@@ -52,11 +57,11 @@
                   <div class="form">
                     <div class="field">
                       <div class="label">
-                        <span>Ma nhan vien</span>
+                        <span>Mã Nhân Viên</span>
                         <span class="required">(*)</span>
                       </div>
                       <div class="input small">
-                        <input />
+                        <input v-model="EmpObj.employeeCode" />
                       </div>
                       <em class="validate-msg">
                         Dùng làm tên đăng nhập vào hệ thống, có thể sử dụng số
@@ -68,24 +73,24 @@
                         <span>Email</span>
                       </div>
                       <div class="input medium">
-                        <input />
+                        <input v-model="EmpObj.email" />
                       </div>
                     </div>
                     <div class="field">
                       <div class="label">
-                        <span>So dien thoai</span>
+                        <span>Số Điện Thoại</span>
                       </div>
                       <div class="input medium">
-                        <input />
+                        <input v-model="EmpObj.phoneNumber" />
                       </div>
                     </div>
                     <div class="field">
                       <div class="label">
-                        <span>Ho va ten</span>
+                        <span>Họ và tên</span>
                         <span class="required">(*)</span>
                       </div>
                       <div class="input large">
-                        <input />
+                        <input v-model="EmpObj.fullName" />
                       </div>
                     </div>
 
@@ -93,20 +98,56 @@
                       <div class="groupLeft">
                         <div class="field">
                           <div class="label">
-                            <span>Gioi tinh</span>
+                            <span>Giới tính</span>
                           </div>
                           <div class="input large">
-                            <input />
+                            <!-- <input v-model="EmpObj.Gender" style="display:none" /> -->
+                            <select
+                              v-model="EmpObj.gender"
+                              style="width: 100%;"
+                            >
+                              <option value="1">{{ formatGender(1) }}</option>
+                              <option value="0">{{ formatGender(0) }}</option>
+                            </select>
                           </div>
                         </div>
                       </div>
                       <div class="groupRight">
                         <div class="field">
                           <div class="label">
-                            <span>Ngay sinh</span>
+                            <span>Ngày sinh</span>
                           </div>
                           <div class="input large">
-                            <input />
+                            <input type="date" v-model="EmpObj.dateOfBirth" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <div class="groupLeft">
+                        <div class="field">
+                          <div class="label">
+                            <span>Số CMND</span>
+                          </div>
+                          <div class="input large">
+                            <!-- <input v-model="EmpObj.Gender" style="display:none" /> -->
+                            <input
+                              type="text"
+                              v-model="EmpObj.citizenIdentityCode"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="groupRight">
+                        <div class="field">
+                          <div class="label">
+                            <span>Ngày cấp</span>
+                          </div>
+                          <div class="input large">
+                            <input
+                              type="date"
+                              v-model="EmpObj.citizenIdentityDate"
+                            />
                           </div>
                         </div>
                       </div>
@@ -116,7 +157,7 @@
                         <span>Nơi cấp CMND</span>
                       </div>
                       <div class="input large">
-                        <input />
+                        <input v-model="EmpObj.citizenIdentityPlace" />
                       </div>
                     </div>
                     <div class="field">
@@ -156,7 +197,7 @@
                       </div>
                       <div class="checkbox">
                         <div class="input small">
-                          <input value="chính thức" />
+                          <input v-model="EmpObj.workState" />
                         </div>
                         <div
                           class="checkbox-item"
@@ -169,7 +210,7 @@
                             value="Car"
                             class="input-checkbox"
                           />
-                          <label for="vehicle2"
+                          <label for="vehicle2" style="text-align:start"
                             >Cho phép làm việc với phần mềm CUKCUK</label
                           >
                         </div>
@@ -218,13 +259,42 @@
         </v-col>
       </v-row>
     </v-app>
-    <button @click="dialog = true">click di</button>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
-  props: ["visible"],
+  data() {
+    return {
+      EmpObj: {
+        employeeCode: "",
+        email: "",
+        fullName: "",
+        gender: null,
+        dateOfBirth: null,
+        salary: null,
+        phoneNumber: "",
+        workState: "",
+        citizenIdentityCode: "",
+        citizebIdentityPlace: "",
+        citizebIdentityDate: null,
+      },
+    };
+  },
+  props: ["visible", "obj"],
+  watch: {
+    obj: async function(newVal) {
+      // watch it
+      var emp = await axios.get(
+        `https://localhost:44382/api/Employee?id=` + newVal
+      );
+
+      this.EmpObj = emp.data.data[0];
+      console.log(this.EmpObj);
+      //console.log(newVal);
+    },
+  },
   computed: {
     show: {
       get() {
@@ -237,9 +307,48 @@ export default {
       },
     },
   },
+  methods: {
+    saveForm: async function() {
+      console.log(this.EmpObj);
+      const response = await axios({
+        method: "post",
+        url: "https://localhost:44382/api/Employee",
+        data: this.EmpObj, // This is the body part
+      });
+
+      return response;
+    },
+    formatGender(gender) {
+      var g = parseInt(gender);
+      var genderName =
+        g == 1 ? "Nữ" : g == 0 ? "Nam" : g == 2 ? "Khác" : "Không xác định";
+      return genderName;
+    },
+    /**
+     *Hàm định dạng lại ngày sinh
+     * @param {string} d
+     *
+     */
+    formatDate(d) {
+      var date = new Date(d);
+      var day = date.getDate() > 10 ? date.getDate() : "0" + date.getDate();
+      var month =
+        date.getMonth() + 1 > 10
+          ? date.getMonth() + 1
+          : "0" + (date.getMonth() + 1);
+      var year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    },
+  },
 };
 </script>
 <style>
+.title-dialog {
+  position: relative;
+  top: -20px;
+  font-size: 13px;
+  right: 12px;
+}
 .sprite {
   background: url("../assets/icon/set-icon.png") no-repeat 0 -2586px;
   width: 16px;
@@ -265,6 +374,10 @@ export default {
   display: flex;
   margin-left: 8px;
   padding: 0 4px;
+  cursor: pointer;
+}
+.modal-action div:hover {
+  border: solid 1px blue;
 }
 .modal-action div p {
   margin-top: 3px;
@@ -312,6 +425,12 @@ div .row {
   align-items: center;
   margin-bottom: 8px;
 }
+.field em {
+  font-size: 12px;
+  text-align: start;
+  /* padding-right: 8px; */
+  padding-left: 8px;
+}
 .field .label {
   width: 60%;
   max-width: 140px;
@@ -320,12 +439,22 @@ div .row {
   white-space: nowrap;
 }
 .field input {
-  background-color: #f2f2f2;
+  background-color: #fff;
   color: #000;
   padding: 3px 5px 3px !important;
   font: 12px/15px TahomaCustom, arial, sans-serif !important;
   line-height: 22px;
   width: 100%;
+  border: solid 1px #e5e5e5;
+  /* outline-color: #3892d3 !important; */
+  outline-color: #3892d3;
+  height: 30px;
+}
+.field select {
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  outline-color: #3892d3;
+  padding: 2px;
 }
 .required {
   color: red;
@@ -355,9 +484,11 @@ label {
   justify-content: flex-start;
   margin-right: 12px;
 }
-
+.checkbox-item label {
+  margin: 0px;
+}
 .field .checkbox .checkbox-item .input-checkbox {
-  width: 13px;
+  width: 16px;
   margin-right: 12px;
 }
 .field .checkbox .checkbox-item .label {

@@ -72,6 +72,9 @@
   border: none;
   outline: none;
   height: 30px;
+  min-width: 180px;
+  /* padding: 8px; */
+  padding-left: 8px;
 }
 .topbar {
   display: flex;

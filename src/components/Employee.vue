@@ -23,7 +23,9 @@
         <a href="#">Nhân viên</a>
         <span>Lọc nhanh</span>
         <select>
-          <option value="">Đang làm việc</option>
+          <option value="1">Đang làm việc</option>
+          <option value="2">Chính thức</option>
+          <option value="3">Nghỉ việc</option>
         </select>
       </div>
       <div class="content-header-right">
@@ -34,29 +36,33 @@
     <div class="list-emp">
       <table class="table table-striped" style="background-color:#EEEEEE">
         <thead style="border-right: 1px solid #ddd;">
-          <tr class="table-action">
+          <tr class="table-action" style="max-width: 200px;">
             <!-- <div @click="show = true"> -->
 
             <div @click.stop="showScheduleForm = true">
               <img src="@/assets/icon/SaveAdd16.png" />
               <span>Thêm</span>
             </div>
-            <div>
-              <img style="height:20px" src="@/assets/icon/icons8-view-64.png" />
+            <div @click.stop="editItem(2)">
+              <p class="sprite-view"></p>
               <span>Xem</span>
             </div>
-            <div>
+            <!-- <div>
+              <p class="sprite-coppy"></p>
+              <span>Nhân bản</span>
+            </div> -->
+            <div @click.stop="editItem(2)">
               <img src="@/assets/icon/Edit16.png" />
               <span>Sửa</span>
             </div>
-            <div>
+            <div @click="deleteItem()">
               <img src="@/assets/icon/icons8-delete-26.png" />
               <span>Xóa</span>
             </div>
-            <div>
+            <!-- <div>
               <p class="sprite"></p>
               <span>Nạp</span>
-            </div>
+            </div> -->
           </tr>
           <tr>
             <th scope="col">Tên đăng nhập</th>
@@ -68,38 +74,34 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in listEmploy.data" :key="item.EmployeeId">
-            <td>{{ item.EmployeeCode }}</td>
-            <td>{{ item.FullName }}</td>
-            <td>{{ item.Gender }}</td>
-            <td>{{ item.DateOfBirth }}</td>
-            <td>{{ item.PhoneNumber }}</td>
-            <td>{{ item.Email }}</td>
+          <tr
+            class="emp-items"
+            v-for="(item, index) in listEmploy.data"
+            @dblclick.stop="editItem(item.employeeId)"
+            :key="index"
+            @click="activate(item.employeeId)"
+            :class="{
+              sidebaractive: active_el == item.employeeId,
+              sidebaractivehover: active_elhover == item.employeeId,
+            }"
+            @mouseover="activatehover(item.employeeId)"
+            @mouseleave="unactivehover"
+          >
+            <td>{{ item.employeeCode }}</td>
+            <td>{{ item.fullName }}</td>
+            <td>{{ item.phoneNumber }}</td>
+            <td>{{ formatDate(item.dateOfBirth) }}</td>
+            <td>{{ formatGender(item.gender) }}</td>
+            <td>{{ item.workState }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="paging">
-      <p>Hiển thị từ 1-10/1000 khách hàng</p>
-      <div class="paging-index">
-        <ul>
-          <li><img src="@/assets/btn-firstpage.svg" /></li>
-          <li><img src="@/assets/btn-prev-page.svg" /></li>
-          <li class="paging-number">1</li>
-          <li class="paging-number">2</li>
-          <li class="paging-number paging-active">3</li>
-          <li class="paging-number">4</li>
-          <li class="paging-number">5</li>
-          <li class="paging-number">6</li>
-          <li><img src="@/assets/btn-next-page.svg" /></li>
-          <li><img src="@/assets/btn-lastpage.svg" /></li>
-        </ul>
-      </div>
-      <p>10 khách hàng trên/trang</p>
-    </div>
+
     <EmployeeForm
       :visible="showScheduleForm"
       @close="showScheduleForm = false"
+      :obj="item"
     />
   </div>
 </template>
@@ -114,25 +116,103 @@ export default {
     return {
       showScheduleForm: false,
       listEmploy: [],
+      item: Object,
+      active_el: -1,
+      active_elhover: -1,
     };
   },
   async mounted() {
-    this.listEmploy = await axios.get(`http://api.manhnv.net/api/employees`);
-    console.log(this.listEmploy);
+    var d = await axios.get(
+      `https://localhost:44382/api/Employee?pageIndex=1&pageSize=10`
+    );
+    this.listEmploy = d.data;
   },
 
   methods: {
-    editItem: function() {
-      this.dialog = true;
+    editItem: function(i) {
+      this.item = this.active_el;
+      this.showScheduleForm = true;
+      console.log(i);
+    },
+    async filterEmployee(event) {
+      var workStatusId = event.target.value;
+      try {
+        var employee = await axios.get(
+          `http://localhost:52690/api/v1/Employees/filter?workStatus=${workStatusId}`
+        );
+        this.employees = employee.data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    formatGender(gender) {
+      var g = parseInt(gender);
+      var genderName =
+        g == 1 ? "Nữ" : g == 0 ? "Nam" : g == 2 ? "Khác" : "Không xác định";
+      return genderName;
+    },
+    /**
+     *Hàm định dạng lại ngày sinh
+     * @param {string} d
+     *
+     */
+    formatDate(d) {
+      var date = new Date(d);
+      var day = date.getDate() > 10 ? date.getDate() : "0" + date.getDate();
+      var month =
+        date.getMonth() + 1 > 10
+          ? date.getMonth() + 1
+          : "0" + (date.getMonth() + 1);
+      var year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    },
+    activate: function(el) {
+      this.active_el = el;
+    },
+    activatehover: function(elhover) {
+      this.active_elhover = elhover;
+    },
+    unactivehover: function() {
+      this.active_elhover = -1;
+    },
+    deleteItem: async function() {
+      console.log(`https://localhost:44382/api/Employee?id=${this.active_el}`);
+
+      await axios.delete(
+        `https://localhost:44382/api/Employee?id=${this.active_el}`,
+        {
+          id: this.active_el,
+        }
+      );
+      var listUpdate = await axios.get(
+        `https://localhost:44382/api/Employee?pageIndex=1&pageSize=50`
+      );
+      this.listEmploy = listUpdate.data;
     },
   },
 };
 </script>
 <style scoped>
+.sidebaractive {
+  background-color: #c1ddf1 !important;
+}
+.sidebaractivehover {
+  background-color: #c1ddf1 !important;
+}
 .sprite {
   background: url("../assets/icon/set-icon.png") no-repeat 0 -2586px;
   width: 16px;
   height: 13px;
+}
+.sprite-view {
+  background: url("../assets/icon/set-icon.png") no-repeat -1px -705px;
+  width: 14px;
+  height: 14px;
+}
+.sprite-coppy {
+  background: url("../assets/icon/set-icon.png") no-repeat -1px -1888px;
+  width: 14px;
+  height: 15px;
 }
 .list-emp td,
 th {
@@ -153,6 +233,7 @@ th {
 }
 .table-action div img {
   height: 20px;
+  padding-top: 5px;
 }
 .table-action {
   display: flex;
@@ -163,7 +244,9 @@ th {
   display: flex;
   margin-left: 8px;
   padding: 0 4px;
+  cursor: pointer;
 }
+
 .table-action div p {
   margin-top: 3px;
 }
@@ -178,15 +261,17 @@ th {
   color: #333;
 }
 .content-header-right button {
-  margin: 5px 5px;
+  margin: 4px 4px;
+  border: 1px solid #e5e5e5;
+  padding: 2px;
 }
 .content-title {
   display: flex;
   justify-content: space-between;
-  padding: 10px 20px;
+  padding: 8px 20px;
 }
 .content-header {
-  padding: 10px;
+  padding: 8px;
   display: flex;
   justify-content: space-between;
 }
@@ -202,7 +287,11 @@ select {
   margin: 6px;
 }
 .content-header-left select {
+  border: 1px solid #e5e5e5;
   outline: none;
+  min-width: 120px;
+  /* padding: 8px; */
+  padding-left: 8px;
 }
 
 .content-header-left a {
