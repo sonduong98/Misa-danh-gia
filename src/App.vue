@@ -1,28 +1,50 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div>
+      <Leftbar />
+    </div>
+    <div style="width:100%">
+      <Topbar />
+      <Employee />
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Employee from "./components/Employee.vue";
+import Topbar from "./components/Topbar.vue";
+import Leftbar from "./components/Leftbar.vue";
+// import EmployeeForm from "./components/EmployeeForm.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    Employee,
+    Topbar,
+    Leftbar,
+    // EmployeeForm,
+  },
+};
 </script>
 
 <style>
+@font-face {
+  font-family: Tahoma_Regular;
+  src: url(/assets/font/Tahoma_Regular.woff);
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  display: flex;
+}
+body {
+  margin: 0px;
+  font-family: Tahoma_Regular;
+}
+a {
+  color: #fff;
+  text-decoration: none;
 }
 </style>
